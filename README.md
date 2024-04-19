@@ -1,3 +1,13 @@
+# RNA2way_pred
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+## Install
+
+To install RNA2way_pred 
+
+```shell
+python -m pip install git+https://github.com/Sanduni522/RNA2way_pred
 ```
 
 
