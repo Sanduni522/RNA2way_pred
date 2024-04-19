@@ -3,7 +3,6 @@ matplotlib
 scipy
 numpy
 xlwt
-glob
 biopandas
 math
 csv
