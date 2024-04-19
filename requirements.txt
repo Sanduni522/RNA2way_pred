@@ -1,0 +1,14 @@
+pandas
+matplotlib
+scipy
+numpy
+xlwt
+glob
+biopandas
+math
+csv
+pathlib
+xlrd
+freesasa
+tensorflow
+sklearn
