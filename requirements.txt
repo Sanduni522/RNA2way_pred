@@ -4,7 +4,6 @@ scipy
 numpy
 xlwt
 biopandas
-math
 csv
 pathlib
 xlrd
