@@ -1087,4 +1087,4 @@ def cli(path):
     plt.savefig(f'{path}/results/Regression_plot.png')
 
 if __name__ == "__main__":
-    main()
+    cli()
