@@ -8,4 +8,4 @@ pathlib
 xlrd
 freesasa
 tensorflow
-sklearn
+scikit-learn
