@@ -13,10 +13,10 @@ from tensorflow.keras.models import load_model
 import math
 from math import log
 from keras.callbacks import EarlyStopping
-import pdb_seq
+from . import pdb_seq
 import subprocess
 from xlwt import Workbook
-import build_pdb_set
+from . import build_pdb_set
 import xlrd
 import openpyxl
 from biopandas.pdb import PandasPdb
