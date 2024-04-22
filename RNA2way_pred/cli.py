@@ -108,7 +108,7 @@ def prep_fasta_secstruct(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}'])
     subprocess.call(['mv', f'{path}/pdb_file', f'{path}/{pdb_file[:-4]}/'])
     #os.chdir(f'{path}/{pdb_file[:-4]}')
-    motif = pdb_seq.sequence(pdb_file)
+    motif = sequence(pdb_file)
     seq_low = motif.lower()
     print(seq_low)
     seq1 = seq_low.split('_')[0]
@@ -1191,9 +1191,9 @@ def cli(path):
     log.info("Starting RNA2way_pred")
     log.info("path: %s", path)
 
-    os.mkdir(f'{path}/results')
-    #os.chdir(f'{path}/')
-    fn = glob.glob(f'{path}/*.pdb') ## pdb file names
+    if not os.path.exists(f'{os.getcwd()}/results'):
+        os.mkdir(f'{os.getcwd()}/results')
+    fn = glob.glob(f'./*.pdb') ## pdb file names
     print(fn)
 
     for f in fn:
