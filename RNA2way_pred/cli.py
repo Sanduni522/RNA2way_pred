@@ -177,7 +177,7 @@ def farfar(name,pdb_file,path):
     #                 'true', '-fragment_homology_rmsd', '2.0'])
         subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
         subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
-        subprocess.call(['extract_pdbs.mpi.linuxgccrelease, '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
+        subprocess.call(['extract_pdbs.mpi.linuxgccrelease', '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
         subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)
     else:
         subprocess.call(['rna_denovo', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
@@ -186,7 +186,7 @@ def farfar(name,pdb_file,path):
     #                 'true', '-fragment_homology_rmsd', '2.0'])
         subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
         subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
-        subprocess.call(['extract_pdbs, '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
+        subprocess.call(['extract_pdbs', '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
         subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)        
 
 def run_dssr(pdb_file,path):
