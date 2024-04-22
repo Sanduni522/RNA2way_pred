@@ -1199,7 +1199,7 @@ def cli(path):
     for f in fn:
         print(f)
         prep_fasta_secstruct(f,path)
-        m = pdb_seq.sequence(f).lower()
+        m = sequence(f).lower()
         renumber_pdb(f,m)
         farfar(m,f)
         #os.chdir(f'{path}/{f[:-4]}/pdb/')
