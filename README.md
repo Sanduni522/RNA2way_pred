@@ -22,11 +22,12 @@ Usage: RNA2way_pred [OPTIONS]
   A program that predicts DMS reactivity using structural parameters
 
 Options
-  -p, --path TEXT    Input the path where the folder with PDB files is [required]
   --help            Show this message and exit.
 ```
 
-
+```shell
+RNA2way_pred
+```
 
 ## Important information
 
@@ -48,6 +49,8 @@ $ cd ./pythonenv
 $ source bin/activate
 ```
 
-3) You must have the Rosetta rna_denovo package installed on your computer. 
+3) You must have the Rosetta rna_denovo package installed on your computer.
+
+4) The package must be executed where the PDB files are located.
 
 
