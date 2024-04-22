@@ -137,7 +137,7 @@ def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg)
     start2 = end1 + 5
     len_motif2 = len(motif.split('_')[1])
     end2 = start2 + len_motif2 - 1
-    if platform.platform().split('-')[0] == 'macOs':
+    if platform.platform().split('-')[0] == 'macOS':
         subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
         subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
@@ -161,7 +161,7 @@ def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg)
     print('renumber complete')
 
 def farfar(name,pdb_file,path):
-    if platform.platform().split('-')[0] == 'macOs':
+    if platform.platform().split('-')[0] == 'macOS':
         subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'true', '-nstruct', '3', '-native', f'{path}/{pdb_file[:-4]}/{name}.pdb', '-exclude_native_fragments',
                      'true'])
