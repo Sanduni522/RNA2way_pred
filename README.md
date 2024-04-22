@@ -32,7 +32,7 @@ Options
 
 1) The content in Important_files should be placed where the PDB files are to run this. If you have separate DMS reactivity values stored in a CSV file, replace 'Reactivity_values.csv' with it. 
 
-2) The package installation must be run in a virtual environment. You can read below to learn how to make a virtual environment.
+2) The package must be executed in a virtual environment. You can read below to learn how to make a virtual environment.
 
   Create a virtual environment.
 ```shell
