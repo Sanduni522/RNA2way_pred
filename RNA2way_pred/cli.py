@@ -107,7 +107,7 @@ def sequence(pdb_file_path):
 def prep_fasta_secstruct(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}'])
     subprocess.call(['mv', f'{path}/{pdb_file}', f'{path}/{pdb_file[:-4]}/'])
-    motif = sequence(pdb_file)
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     seq_low = motif.lower()
     print(seq_low)
     seq1 = seq_low.split('_')[0]
@@ -128,7 +128,7 @@ gg{seq1}cc gg{seq2}cc"""
     secstruct.close()
 
 def renumber_pdb(pdb_file,name): ## name would be the motif (ex: cccg_cccg). The name must be simple letters
-    motif = sequence(pdb_file)
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     len_motif1 = len(motif.split('_')[0])
     end1 = len_motif1 + 3 - 1
     start2 = end1 + 5
@@ -163,7 +163,7 @@ def run_dssr(pdb_file,path):
 def read_dssr_file(pdb_file,path):
     wb1 = Workbook()
     var_holder = {}
-    motif1 = sequence(f'{path}/{pdb_file[:-4]}/pdb_file')
+    motif1 = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     print(motif1)
     motif11_1 = motif1.split('_')[0]
     motif11_2 = motif1.split('_')[1]
