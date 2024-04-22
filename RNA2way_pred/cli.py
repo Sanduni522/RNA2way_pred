@@ -558,7 +558,6 @@ def cal_rmsd(a,path,pdb_file, x1, x2, x3, x4):
 def rmsd(pdb_file,path):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for m in filenames:
-        #os.chdir(f'{path}/{pdb_file[:-4]}/pdb/{model_pdb}/')
         motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
         motif1 = motif.split('_')[0]
         motif2 = motif.split('_')[1]
@@ -1076,7 +1075,6 @@ def get_average(pdb_file,path):
     Csv.to_csv(f'{path}/{pdb_file[:-4]}/average_{pdb_file[:-4]}.csv', index=False)
 
 def concat_average_files(path):
-    #os.chdir(f'{path}/')
     filename = glob.glob(f'{path}/*/average_*.csv')
     frame = []
     N = []
@@ -1186,7 +1184,8 @@ def best_fit(X, Y):
 
     return a, b
 
-def cli(path):
+def cli():
+    path = os.getcwd()
     setup_applevel_logger()
     log.info("Starting RNA2way_pred")
     log.info("path: %s", path)
@@ -1202,11 +1201,10 @@ def cli(path):
         m = sequence(f).lower()
         renumber_pdb(f,m)
         farfar(m,f)
-        #os.chdir(f'{path}/{f[:-4]}/pdb/')
         run_dssr(f,path)
         cal_hbond(f,path)
         convert_txt_to_csv(f,path)
-        cal_rmsd(f,path)
+        rmsd(f,path)
         read_dssr_file(f,path)
         add_RMSD(f,path)
         sasa_final = SASA(f,path)
