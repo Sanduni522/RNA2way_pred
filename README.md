@@ -13,7 +13,7 @@ python -m pip install .
 ```
 
 
-# How to run 
+## How to run 
 
 ```shell
 RNA2way_pred --help
@@ -22,6 +22,31 @@ Usage: RNA2way_pred [OPTIONS]
   A program that predicts DMS reactivity using structural parameters
 
 Options
-  -p, --path TEXT    Input the path where the folder with PDB files are [required]
+  -p, --path TEXT    Input the path where the folder with PDB files is [required]
   --help            Show this message and exit.
 ```
+
+
+
+## Important information
+
+1) The content in Important_files should be placed where the PDB files are to run this. If you have separate DMS reactivity values stored in a CSV file, replace 'Reactivity_values.csv' with it. 
+
+2) The package installation must be run in a virtual environment. You can read below to learn how to make a virtual environment.
+  Create a virtual environment.
+```shell
+$ brew install virtualenv
+```
+  Create a directory (./pythonenv) to hold it.
+```shell
+$ virtualenv --system-site-packages -p python3 ./pythonenv
+$ cd ./pythonenv
+```
+  Activate the virtual environment.
+```shell
+$ source bin/activate
+```
+
+3) You must have the Rosetta rna_denovo package installed on your computer. 
+
+
