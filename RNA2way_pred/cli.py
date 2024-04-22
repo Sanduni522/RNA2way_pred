@@ -106,8 +106,7 @@ def sequence(pdb_file_path):
 
 def prep_fasta_secstruct(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}'])
-    subprocess.call(['mv', f'{path}/pdb_file', f'{path}/{pdb_file[:-4]}/'])
-    #os.chdir(f'{path}/{pdb_file[:-4]}')
+    subprocess.call(['mv', f'{path}/{pdb_file}', f'{path}/{pdb_file[:-4]}/'])
     motif = sequence(pdb_file)
     seq_low = motif.lower()
     print(seq_low)
@@ -153,7 +152,6 @@ def farfar(name,pdb_file):
     subprocess.call('mv S_*.pdb pdb/', shell=True)
 
 def run_dssr(pdb_file,path):
-    #os.chdir(f'{path}/{pdb_file[:-4]}/pdb')
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*.pdb'))
     for model_pdb in filenames:
         subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb/{model_pdb[:-4]}'])
@@ -163,7 +161,6 @@ def run_dssr(pdb_file,path):
         subprocess.call(f'rm -rf {path}/{pdb_file[:-4]}/pdb/dssr-*', shell=True)
 
 def read_dssr_file(pdb_file,path):
-    #os.chdir(f'{path}/{pdb_file[:-4]}/')
     wb1 = Workbook()
     var_holder = {}
     motif1 = sequence(f'{path}/{pdb_file[:-4]}/pdb_file')
@@ -406,7 +403,6 @@ def read_dssr_file(pdb_file,path):
     wb1.save(f'dssr_data.xls')
 
 def cal_hbond(pdb_file,path):
-    #os.chdir(f'{path}/{pdb_file[:-4]}/pdb/')
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/hbonds'])
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for model_pdb in filenames:
@@ -414,7 +410,6 @@ def cal_hbond(pdb_file,path):
         subprocess.call(['mv', f'{model_pdb}/{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
 
 def convert_txt_to_csv(pdb_file,path):
-    #os.chdir(f'{path}/{pdb_file[:-4]}/hbonds')
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/hbonds/*_FARFAR-hbonds.txt'))
     for model_pdb in filenames:
         read_file = pd.read_csv(f'{model_pdb}', skiprows=2, delimiter="\s+",
@@ -536,7 +531,7 @@ def compute_rmsd_from_coords(Q, P):
     return rmsd
 
 def cal_rmsd(a,path,pdb_file, x1, x2, x3, x4):
-    df = pd.read_csv(f"./bin/pdb_structures.csv") ### place where the software is installed
+    df = pd.read_csv(f"pdb_structures.csv") ### place where the software is installed
 
     RMSD = []
     pdbs = df['pdb_name']
@@ -1135,7 +1130,7 @@ def add_DMS(path):
     df['start2'] = x3
     df['end2'] = x4
 
-    df_react = pd.read_csv(f'../bin/Reactivity_values.csv') ### place where the software is installed
+    df_react = pd.read_csv(f'Reactivity_values.csv') ### place where the software is installed
 
     motif_test = df['motif']
     motif_react = df_react['sequence']
@@ -1231,7 +1226,7 @@ def cli():
 
     early_stopping = EarlyStopping(monitor='val_loss', mode='max', patience=10, restore_best_weights=True)
     keras_model = get_keras_model(1,217,'sigmoid',test_layers)
-    keras_model.load_weights(f'../bin/keras_model_regression_weights.h5') ### this should be the path where the software is installed
+    keras_model.load_weights(f'keras_model_regression_weights.h5') ### this should be the path where the software is installed
 
     test_pred = keras_model.predict(test_layers)
     df_pred = pd.DataFrame()
