@@ -16,7 +16,6 @@ from keras.callbacks import EarlyStopping
 import subprocess
 from xlwt import Workbook
 import xlrd
-import openpyxl
 from biopandas.pdb import PandasPdb
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
