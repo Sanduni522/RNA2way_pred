@@ -1178,9 +1178,6 @@ def sub_select_data(data: List, selection: List) -> List:
     return [data[i] for i in selection]
 
 @click.command()
-@click.option(
-    "-p", "--path", help="Input the path where the folder with PDB files are", required=True
-)
 
 def cli():
     path = os.getcwd()
