@@ -28,7 +28,6 @@ from scipy import stats
 
 APP_LOGGER_NAME = "RNA2WAY_PREDICT"
 
-
 def setup_applevel_logger(logger_name=APP_LOGGER_NAME, is_debug=False, file_name=None):
     """
     Set up the logger for the app
@@ -62,6 +61,48 @@ def get_logger(module_name):
 
 log = get_logger("CLI")
 
+def sequence(pdb_file_path):
+    ppdb = PandasPdb().read_pdb(pdb_file_path)
+    atom_df = ppdb.df['ATOM']
+    ter_df = ppdb.df['OTHERS'][ppdb.df['OTHERS']['record_name'] == 'TER']
+
+    c2_atoms = atom_df[atom_df['atom_name'] == 'C2'].copy()
+
+    c2_atoms['is_ter'] = False
+    ter_df['is_ter'] = True
+    combined_df = pd.concat([c2_atoms, ter_df], ignore_index=True)
+    combined_df.sort_values(by=['line_idx'], inplace=True)
+
+    last_residue_number = None
+    last_chain_id = None
+    sequences = []
+    current_sequence = []
+
+    for idx, row in combined_df.iterrows():
+        if row['is_ter']:
+            if current_sequence:
+                sequences.append(''.join(current_sequence))
+                current_sequence = []
+            continue
+
+        chain_id = row['chain_id']
+        residue_number = row['residue_number']
+
+        if chain_id != last_chain_id or (
+                last_residue_number is not None and (residue_number - last_residue_number > 1)):
+            if current_sequence:
+                sequences.append(''.join(current_sequence))
+                current_sequence = []
+            last_chain_id = chain_id
+
+        current_sequence.append(row['residue_name'])
+        last_residue_number = residue_number
+
+    if current_sequence:
+        sequences.append(''.join(current_sequence))
+
+    rna_seq = '_'.join(sequences)
+    return rna_seq
 
 def prep_fasta_secstruct(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}'])
@@ -88,7 +129,7 @@ gg{seq1}cc gg{seq2}cc"""
     secstruct.close()
 
 def renumber_pdb(pdb_file,name): ## name would be the motif (ex: cccg_cccg). The name must be simple letters
-    motif = pdb_seq.sequence(pdb_file)
+    motif = sequence(pdb_file)
     len_motif1 = len(motif.split('_')[0])
     end1 = len_motif1 + 3 - 1
     start2 = end1 + 5
@@ -125,7 +166,7 @@ def read_dssr_file(pdb_file,path):
     #os.chdir(f'{path}/{pdb_file[:-4]}/')
     wb1 = Workbook()
     var_holder = {}
-    motif1 = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/pdb_file')
+    motif1 = sequence(f'{path}/{pdb_file[:-4]}/pdb_file')
     print(motif1)
     motif11_1 = motif1.split('_')[0]
     motif11_2 = motif1.split('_')[1]
@@ -381,11 +422,144 @@ def convert_txt_to_csv(pdb_file,path):
                                    "Atom_2"])
         read_file.to_csv(f"{model_pdb[:-4]}.csv", index=False)
 
+def pdb_selres():
+    df = pd.read_csv("pdb_structures.csv")
+    for i, row in df.iterrows():
+        pdb = Path(row['pdb_name']).stem
+        os.system(f"pdb_tidy pdb/{pdb}/{pdb}.pdb | pdb_selres -4:10,17,18 > pdb/{pdb}/{pdb}.pdb")
+
+def get_coordinates_pdb(filename, allowed_atoms=None):
+    V = []
+    f = open(filename)
+    lines = f.readlines()
+    f.close()
+    dict = {}
+    for line in lines:
+        if not line.startswith("ATOM"):
+            continue
+        curr_atom_name = line[12:16].strip()
+        curr_resi = int(line[22:26])
+        if allowed_atoms is not None:
+            if curr_resi not in allowed_atoms:
+                continue
+        if curr_atom_name.startswith("H"):
+            continue
+        if curr_atom_name.startswith("O2'"):
+            continue
+        if curr_atom_name.startswith("P"):
+            continue
+        if curr_atom_name.startswith("OP"):
+            continue
+        x = line[30:38]
+        y = line[38:46]
+        z = line[46:54]
+        V.append(np.asarray([x, y, z], dtype=float))
+    V = np.asarray(V)
+    return V
+    
+def get_beads_pdb(filename, allowed_atoms=None):
+    V = []
+    f = open(filename)
+    lines = f.readlines()
+    f.close()
+    dict = {}
+    for line in lines:
+        if not line.startswith("ATOM"):
+            continue
+        curr_atom_name = line[12:16].strip()
+        curr_resi = int(line[22:26])
+        if allowed_atoms is not None:
+            if curr_atom_name not in allowed_atoms:
+                continue
+        if curr_atom_name.startswith("H"):
+            continue
+        x = line[30:38]
+        y = line[38:46]
+        z = line[46:54]
+        if curr_resi not in dict:
+            dict[curr_resi] = []
+        dict[curr_resi].append([curr_atom_name, float(x), float(y), float(z)])
+
+    keys = sorted(dict.keys())
+    for k in keys:
+        data = dict[k]
+        avg = [0.0, 0.0, 0.0]
+        for d in data:
+            avg[0] += d[1]
+            avg[1] += d[2]
+            avg[2] += d[3]
+        avg = np.array(avg) / len(data)
+        V.append(avg)
+    V = np.asarray(V)
+    return V
+
+def kabsch_rmsd(P, Q):
+    P = rotate(P, Q)
+    return rmsd(P, Q)
+
+def kabsch(P, Q):
+    C = np.dot(np.transpose(P), Q)
+
+    V, S, W = np.linalg.svd(C)
+    d = (np.linalg.det(V) * np.linalg.det(W)) < 0.0
+
+    if d:
+        S[-1] = -S[-1]
+        V[:, -1] = -V[:, -1]
+    U = np.dot(V, W)
+
+    return U
+
+def rotate(P, Q):
+    U = kabsch(P, Q)
+    P = np.dot(P, U)
+    return P
+
+def centroid(X):
+    C = sum(X) / len(X)
+    return C
+
+def rmsd_main(V, W):
+    D = len(V[0])
+    N = len(V)
+    rmsd = 0.0
+    for v, w in zip(V, W):
+        rmsd += sum([(v[i] - w[i]) ** 2.0 for i in range(D)])
+    return np.sqrt(rmsd / N)
+
+def compute_rmsd_from_coords(Q, P):
+    Pc = centroid(P)
+    Qc = centroid(Q)
+    P -= Pc
+    Q -= Qc
+    rmsd = round(kabsch_rmsd(P, Q), 2)
+    return rmsd
+
+def cal_rmsd(a,path,pdb_file, x1, x2, x3, x4):
+    df = pd.read_csv(f"./bin/pdb_structures.csv") ### place where the software is installed
+
+    RMSD = []
+    pdbs = df['pdb_name']
+    all_coords = []
+    for pdb in pdbs:
+        all_coords.append(get_coordinates_pdb(f"{path}/{pdb_file[:-4]}/pdb/{pdb}/{pdb}.pdb", [x1, x2, x3, x4]))
+
+    all_coords_native = [get_coordinates_pdb(a, [x1, x2, x3, x4])]
+
+    for i in range(0, len(all_coords)):
+        rms = compute_rmsd_from_coords(np.array(all_coords[i]), np.array(all_coords_native[0]))
+
+        print(rms)
+        RMSD.append(rms)
+    df['rms'] = RMSD
+
+    df.to_csv(f"{path}/{pdb_file[:-4]}/pdb_structures_rms.csv", index=False)
+
 def rmsd(pdb_file,path):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for m in filenames:
         #os.chdir(f'{path}/{pdb_file[:-4]}/pdb/{model_pdb}/')
-        motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
+        motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
         motif1 = motif.split('_')[0]
         motif2 = motif.split('_')[1]
         x1 = 3
@@ -415,7 +589,7 @@ def multiplyList(myList, char):
     return fin_list
 
 def SASA(pdb_file,path):
-    motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     motif1 = motif.split('_')[0].lower()
     motif2 = motif.split('_')[1].lower()
 
@@ -480,7 +654,7 @@ def SASA(pdb_file,path):
         df.to_csv(f'{path}/{pdb_file[:-4]}/structural_parameters_{l}.csv', index=False)
 
 def hbond(pdb_file,path):
-    motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     var_holder = {}
     p1 = []
     p2 = []
@@ -615,7 +789,7 @@ def hbond(pdb_file,path):
     df_h.to_csv(f'{path}/{pdb_file[:-4]}/hbond.csv', index=False)
 
 def group_hbond(pdb_file,path):
-    motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}').lower()
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}').lower()
     df = pd.read_csv(f'{path}/{pdb_file[:-4]}/hbond.csv')
     nuc_1 = df['Nuc_1']
     nuc_2 = df['Nuc_2']
@@ -712,7 +886,7 @@ def H_bond(row, df):
             return result
 
 def add_hbond(pdb_file,path):
-    motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     motif1 = motif.split('_')[0]
     motif2 = motif.split('_')[1]
 
@@ -762,7 +936,7 @@ def get_structures_less_than_RMSD(pdb_file,path):
         print("DONE")
 
 def get_average(pdb_file,path):
-    motif = pdb_seq.sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
+    motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     path1 = f'{path}/{pdb_file[:-4]}/less_than_rmsd_*.csv'
     filename = sorted(glob.glob(path1))
     Csv = pd.DataFrame()
@@ -1032,7 +1206,7 @@ def cli(path):
         run_dssr(f,path)
         cal_hbond(f,path)
         convert_txt_to_csv(f,path)
-        rmsd(f,path)
+        cal_rmsd(f,path)
         read_dssr_file(f,path)
         add_RMSD(f,path)
         sasa_final = SASA(f,path)
