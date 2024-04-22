@@ -25,6 +25,7 @@ import logging
 import sys
 from typing import List, Dict
 import click
+import platform
 
 # logging #####################################################################
 
@@ -136,23 +137,57 @@ def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg)
     start2 = end1 + 5
     len_motif2 = len(motif.split('_')[1])
     end2 = start2 + len_motif2 - 1
-    subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
-    subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+    if platform.platform().split('-')[0] == 'macOs':
+        subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
+        subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
-    subprocess.call(['extract_pdbs.macosclangrelease', '-in:file:silent', 'default.out'])
-    subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
-    subprocess.call(['rm', '-rf', 'default.out'])
+        subprocess.call(['extract_pdbs.macosclangrelease', '-in:file:silent', 'default.out'])
+        subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
+        subprocess.call(['rm', '-rf', 'default.out'])
+    elif platform.platform().split('-')[0] == 'Linux':
+        subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
+        subprocess.call(['rna_denovo.mpi.linuxgccrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+                     '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
+        subprocess.call(['extract_pdbs.mpi.linuxgccrelease', '-in:file:silent', 'default.out'])
+        subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
+        subprocess.call(['rm', '-rf', 'default.out'])
+    else:
+        subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
+        subprocess.call(['rna_denovo', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+                     '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
+        subprocess.call(['extract_pdbs', '-in:file:silent', 'default.out'])
+        subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
+        subprocess.call(['rm', '-rf', 'default.out'])
     print('renumber complete')
 
 def farfar(name,pdb_file,path):
-    subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+    if platform.platform().split('-')[0] == 'macOs':
+        subprocess.call(['rna_denovo.macosclangrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'true', '-nstruct', '3', '-native', f'{path}/{pdb_file[:-4]}/{name}.pdb', '-exclude_native_fragments',
                      'true'])
     #                 'true', '-fragment_homology_rmsd', '2.0'])
-    subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
-    subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
-    subprocess.call(['extract_pdbs.macosclangrelease', '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
-    subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)
+        subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
+        subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
+        subprocess.call(['extract_pdbs.macosclangrelease', '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
+        subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)
+    elif platform.platform().split('-')[0] == 'Linux':
+        subprocess.call(['rna_denovo.mpi.linuxgccrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+                     '-minimize_rna', 'true', '-nstruct', '3', '-native', f'{path}/{pdb_file[:-4]}/{name}.pdb', '-exclude_native_fragments',
+                     'true'])
+    #                 'true', '-fragment_homology_rmsd', '2.0'])
+        subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
+        subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
+        subprocess.call(['extract_pdbs.mpi.linuxgccrelease, '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
+        subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)
+    else:
+        subprocess.call(['rna_denovo', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
+                     '-minimize_rna', 'true', '-nstruct', '3', '-native', f'{path}/{pdb_file[:-4]}/{name}.pdb', '-exclude_native_fragments',
+                     'true'])
+    #                 'true', '-fragment_homology_rmsd', '2.0'])
+        subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/pdb'])
+        subprocess.call(['mv', 'default.out', f'{path}/{pdb_file[:-4]}/'])
+        subprocess.call(['extract_pdbs, '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
+        subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)        
 
 def run_dssr(pdb_file,path):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*.pdb'))
