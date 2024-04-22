@@ -7,7 +7,9 @@
 To install RNA2way_pred 
 
 ```shell
-python -m pip install git+https://github.com/Sanduni522/RNA2way_pred
+git clone https://github.com/Sanduni522/RNA2way_pred
+cd RNA2way_pred
+python -m pip install .
 ```
 
 
