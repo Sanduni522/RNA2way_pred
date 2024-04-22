@@ -33,7 +33,9 @@ RNA2way_pred
 
 1) The content in Important_files should be placed where the PDB files are to run this. If you have separate DMS reactivity values stored in a CSV file, replace 'Reactivity_values.csv' with it. 
 
-2) The package must be executed in a virtual environment. You can read below to learn how to make a virtual environment.
+2) The 'pdb_structures.csv' file should be updated with the names of the modeled PDB files.
+
+3) The package must be executed in a virtual environment. You can read below to learn how to make a virtual environment. All the dependencies should be installed in the virtual environment. 
 
   Create a virtual environment.
 ```shell
@@ -49,8 +51,8 @@ $ cd ./pythonenv
 $ source bin/activate
 ```
 
-3) You must have the Rosetta rna_denovo package installed on your computer.
+4) You must have the Rosetta rna_denovo package installed on your computer.
 
-4) The package must be executed where the PDB files are located.
+5) The package must be executed where the PDB files are located.
 
 
