@@ -454,7 +454,7 @@ def cal_hbond(pdb_file,path):
         if platform.platform()[0] == 'macOS':
             subprocess.call(['x3dna-dssr', f'-i={model_pdb}', '--get-hbond', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
-        elif plaform.platform()[0] == 'Linux':
+        elif platform.platform()[0] == 'Linux':
             subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb}', '--get-hbond', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
 
