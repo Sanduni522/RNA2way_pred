@@ -452,10 +452,10 @@ def cal_hbond(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/hbonds'])
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for model_pdb in filenames:
-        if platform.platform()[0] == 'macOS':
+        if platform.platform().split('-')[0] == 'macOS':
             subprocess.call(['x3dna-dssr', f'-i={model_pdb}', '--get-hbonds', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
-        elif platform.platform()[0] == 'Linux':
+        elif platform.platform().split('-')[0] == 'Linux':
             subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb}', '--get-hbonds', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
 
