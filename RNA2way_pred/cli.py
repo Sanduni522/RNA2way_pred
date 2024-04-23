@@ -25,6 +25,7 @@ import sys
 from typing import List, Dict
 import click
 import platform
+import openpyxl
 
 # logging #####################################################################
 
