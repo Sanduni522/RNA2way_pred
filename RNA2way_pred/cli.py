@@ -144,7 +144,7 @@ def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg)
         subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
         subprocess.call(['rm', '-rf', 'default.out'])
     elif platform.platform().split('-')[0] == 'Linux':
-        subprocess.call(['renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
+        subprocess.call(['/work/yesselmanlab/hsandunid/temp/Rosetta/tools/rna_tools/bin/renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
         subprocess.call(['rna_denovo.mpi.linuxgccrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
         subprocess.call(['extract_pdbs.mpi.linuxgccrelease', '-in:file:silent', 'default.out'])
@@ -192,12 +192,19 @@ def run_dssr(pdb_file,path):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*.pdb'))
     for model_pdb in filenames:
         m = model_pdb.split('/')[-1]
-        subprocess.call(['mkdir', f'{model_pdb[:-4]}'])
-        subprocess.call(['mv', f'{model_pdb}', f'{model_pdb[:-4]}/'])
-        subprocess.call(['x3dna-dssr', f'-i={model_pdb[:-4]}/{m}', f'-o={model_pdb[:-4]}/{m[:-4]}.out'])
-        subprocess.call(['mv', f'dssr-torsions.txt', f'{path}/{pdb_file[:-4]}/pdb/{m[:-4]}/'])
-        subprocess.call(f'rm -rf dssr-*', shell=True)
-
+        if platform.platform().split('-')[0] == 'macOS':
+            subprocess.call(['mkdir', f'{model_pdb[:-4]}'])
+            subprocess.call(['mv', f'{model_pdb}', f'{model_pdb[:-4]}/'])
+            subprocess.call(['x3dna-dssr', f'-i={model_pdb[:-4]}/{m}', f'-o={model_pdb[:-4]}/{m[:-4]}.out'])
+            subprocess.call(['mv', f'dssr-torsions.txt', f'{path}/{pdb_file[:-4]}/pdb/{m[:-4]}/'])
+            subprocess.call(f'rm -rf dssr-*', shell=True)
+        elif platform.platform().split('-')[0] == 'Linux':
+            subprocess.call(['mkdir', f'{model_pdb[:-4]}'])
+            subprocess.call(['mv', f'{model_pdb}', f'{model_pdb[:-4]}/'])
+            subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb[:-4]}/{m}', f'-o={model_pdb[:-4]}/{m[:-4]}.out'])
+            subprocess.call(['mv', f'dssr-torsions.txt', f'{path}/{pdb_file[:-4]}/pdb/{m[:-4]}/'])
+            subprocess.call(f'rm -rf dssr-*', shell=True)
+            
 def read_dssr_file(pdb_file,path):
     wb1 = Workbook()
     var_holder = {}
@@ -444,8 +451,12 @@ def cal_hbond(pdb_file,path):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/hbonds'])
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for model_pdb in filenames:
-        subprocess.call(['x3dna-dssr', f'-i={model_pdb}', '--get-hbond', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
-        subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
+        if platform.platform()[0] == 'macOS':
+            subprocess.call(['x3dna-dssr', f'-i={model_pdb}', '--get-hbond', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
+            subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
+        elif plaform.platform()[0] == 'Linux':
+            subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb}', '--get-hbond', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
+            subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
 
 def convert_txt_to_csv(pdb_file,path):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/hbonds/*_FARFAR-hbonds.txt'))
