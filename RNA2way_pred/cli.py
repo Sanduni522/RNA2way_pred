@@ -130,7 +130,7 @@ gg{seq1}cc gg{seq2}cc"""
     secstruct.write(text2)
     secstruct.close()
 
-def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg). The name must be simple letters
+def renumber_pdb(pdb_file,name,path,path_to_renumber): ## name would be the motif (ex: cccg_cccg). The name must be simple letters
     motif = sequence(f'{path}/{pdb_file[:-4]}/{pdb_file}')
     len_motif1 = len(motif.split('_')[0])
     end1 = len_motif1 + 3 - 1
@@ -145,7 +145,7 @@ def renumber_pdb(pdb_file,name,path): ## name would be the motif (ex: cccg_cccg)
         subprocess.call(['mv', f'S_000001.pdb', f'{path}/{pdb_file[:-4]}/{name}.pdb']) ## the default pdb name would be S_000001.pdb when extracted from the above code
         subprocess.call(['rm', '-rf', 'default.out'])
     elif platform.platform().split('-')[0] == 'Linux':
-        subprocess.call(['/work/yesselmanlab/hsandunid/temp/Rosetta/tools/rna_tools/bin/renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
+        subprocess.call([f'{path_to_renumber}renumber_pdb_in_place.py', f'{path}/{pdb_file[:-4]}/{pdb_file}', f'3-{end1}', f'{start2}-{end2}'])
         subprocess.call(['rna_denovo.mpi.linuxgccrelease', '-fasta', f'{path}/{pdb_file[:-4]}/{name}.fasta', '-secstruct_file', f'{path}/{pdb_file[:-4]}/{name}.secstruct',
                      '-minimize_rna', 'false', '-s', f'{path}/{pdb_file[:-4]}/{pdb_file}'])
         subprocess.call(['extract_pdbs.mpi.linuxgccrelease', '-in:file:silent', 'default.out'])
@@ -189,7 +189,7 @@ def farfar(name,pdb_file,path):
         subprocess.call(['extract_pdbs', '-in:file:silent', f'{path}/{pdb_file[:-4]}/default.out'])
         subprocess.call(f'mv S_*.pdb {path}/{pdb_file[:-4]}/pdb/', shell=True)        
 
-def run_dssr(pdb_file,path):
+def run_dssr(pdb_file,path,path_to_dssr):
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*.pdb'))
     for model_pdb in filenames:
         m = model_pdb.split('/')[-1]
@@ -202,7 +202,7 @@ def run_dssr(pdb_file,path):
         elif platform.platform().split('-')[0] == 'Linux':
             subprocess.call(['mkdir', f'{model_pdb[:-4]}'])
             subprocess.call(['mv', f'{model_pdb}', f'{model_pdb[:-4]}/'])
-            subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb[:-4]}/{m}', f'-o={model_pdb[:-4]}/{m[:-4]}.out'])
+            subprocess.call([f'{path_to_dssr}x3dna-dssr', f'-i={model_pdb[:-4]}/{m}', f'-o={model_pdb[:-4]}/{m[:-4]}.out'])
             subprocess.call(['mv', f'dssr-torsions.txt', f'{path}/{pdb_file[:-4]}/pdb/{m[:-4]}/'])
             subprocess.call(f'rm -rf dssr-*', shell=True)
             
@@ -448,7 +448,7 @@ def read_dssr_file(pdb_file,path):
 
     wb1.save(f'{path}/{pdb_file[:-4]}/dssr_data.xls')
 
-def cal_hbond(pdb_file,path):
+def cal_hbond(pdb_file,path,path_to_dssr):
     subprocess.call(['mkdir', f'{path}/{pdb_file[:-4]}/hbonds'])
     filenames = sorted(glob.glob(f'{path}/{pdb_file[:-4]}/pdb/*/*.pdb'))
     for model_pdb in filenames:
@@ -456,7 +456,7 @@ def cal_hbond(pdb_file,path):
             subprocess.call(['x3dna-dssr', f'-i={model_pdb}', '--get-hbonds', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
         elif platform.platform().split('-')[0] == 'Linux':
-            subprocess.call(['/work/yesselmanlab/hsandunid/py_dssr/pydssr/resources/dssr/linux/x3dna-dssr', f'-i={model_pdb}', '--get-hbonds', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
+            subprocess.call([f'{path_to_dssr}x3dna-dssr', f'-i={model_pdb}', '--get-hbonds', f'-o={model_pdb[:-4]}_FARFAR-hbonds.txt'])
             subprocess.call(['mv', f'{model_pdb[:-4]}_FARFAR-hbonds.txt', f'{path}/{pdb_file[:-4]}/hbonds'])
 
 def convert_txt_to_csv(pdb_file,path):
@@ -1241,10 +1241,22 @@ def cli():
         prep_fasta_secstruct(f,path)
         m = sequence(f'{path}/{f[:-4]}/{f}').lower()
         print(m)
-        renumber_pdb(f,m,path)
-        farfar(m,f,path)
-        run_dssr(f,path)
-        cal_hbond(f,path)
+        rif platform.platform().split('-')[0] == 'macOS':
+            path_to_renumber = ""
+            path_to_dssr = ""
+            renumber_pdb(f,m,path,path_to_renumber)
+            farfar(m,f,path)
+            run_dssr(f,path,path_to_dssr)
+            cal_hbond(f,path,path_to_dssr)
+        elif platform.platform().split('-')[0] == 'Linux':
+            df_path = pd.read_csv(f'{path}/test.csv')
+            path_x = df_path['dir']
+            path_to_renumber = path_x[0]
+            path_to_dssr = path_x[1]
+            renumber_pdb(f,m,path,path_to_renumber)
+            farfar(m,f,path)
+            run_dssr(f,path,path_to_dssr)
+            cal_hbond(f,path,path_to_dssr)
         convert_txt_to_csv(f,path)
         cal_rmsd(f,path)
         read_dssr_file(f,path)
