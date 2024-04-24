@@ -1241,7 +1241,7 @@ def cli():
         prep_fasta_secstruct(f,path)
         m = sequence(f'{path}/{f[:-4]}/{f}').lower()
         print(m)
-        rif platform.platform().split('-')[0] == 'macOS':
+        if platform.platform().split('-')[0] == 'macOS':
             path_to_renumber = ""
             path_to_dssr = ""
             renumber_pdb(f,m,path,path_to_renumber)
