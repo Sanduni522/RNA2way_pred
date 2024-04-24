@@ -55,4 +55,6 @@ $ source bin/activate
 
 5) The package must be executed where the PDB files are located.
 
+6) The 'test.csv' file has the paths to 'renumber_pdb_in_place.py' and 'x3dna-dssr'. They should be changed accordingly. 
+
 
